@@ -1,6 +1,7 @@
 package ru.shortener.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.shortener.exception.LinkNotFoundException;
 import ru.shortener.model.Link;
@@ -11,12 +12,15 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LinkService {
 
     private final LinkRepository repository;
 
     private String generateShortCode() {
-        return UUID.randomUUID().toString().substring(0,8);
+        String code = UUID.randomUUID().toString().substring(0,8);
+        log.debug("Сгенерирован shortCode: {}", code);
+        return code;
     }
 
     public Link createShortLink(String originalUrl) {
@@ -24,12 +28,18 @@ public class LinkService {
         link.setOriginalUrl(originalUrl);
         link.setShortCode(generateShortCode());
         link.setCreatedAt(LocalDateTime.now());
-        return repository.save(link);
+        Link saved = repository.save(link);
+        log.debug("Ссылка сохранена с ID: {}, shortCode: {}", saved.getId(), saved.getShortCode());
+        return saved;
     }
 
     public String getOriginalUrl(String shortCode) {
+        log.debug("Поиск оригинального URL по shortCode: {}", shortCode);
         return repository.findByShortCode(shortCode)
-                .orElseThrow(() -> new LinkNotFoundException(shortCode))
+                .orElseThrow(() -> {
+                    log.warn("Ссылка не найдена: {}", shortCode);
+                    return new LinkNotFoundException(shortCode);
+                })
                 .getOriginalUrl();
     }
 }
