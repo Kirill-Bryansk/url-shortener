@@ -1,6 +1,7 @@
 package ru.shortener.controller;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -8,6 +9,12 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-class LinkRequest {
+public class LinkRequest {
+
+    @NotBlank(message = "URL не может быть пустым")
+    @Pattern(
+            regexp = "^(https?://)[\\w\\-._~:/?#\\[\\]@!$&'()*+,;=]+$",
+            message = "Некорректный URL"
+    )
     private String originalUrl;
 }

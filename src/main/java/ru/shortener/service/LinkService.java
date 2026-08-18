@@ -3,6 +3,7 @@ package ru.shortener.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.shortener.exception.DuplicateException;
 import ru.shortener.exception.LinkNotFoundException;
 import ru.shortener.model.Link;
 import ru.shortener.repository.LinkRepository;
@@ -24,6 +25,7 @@ public class LinkService {
     }
 
     public Link createShortLink(String originalUrl) {
+        checkLink(originalUrl);
         Link link = new Link();
         link.setOriginalUrl(originalUrl);
         link.setShortCode(generateShortCode());
@@ -50,5 +52,11 @@ public class LinkService {
         log.debug("Получение ссылки без увеличения счетчика кликов по shortCode: {}", shortCode);
         return repository.findByShortCode(shortCode)
                 .orElseThrow(() -> new LinkNotFoundException(shortCode));
+    }
+
+    public void checkLink(String originalUrl) {
+        if (repository.existsByOriginalUrl(originalUrl)) {
+            throw new DuplicateException("Такая ссылка уже существует");
+        }
     }
 }

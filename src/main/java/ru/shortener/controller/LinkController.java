@@ -1,5 +1,6 @@
 package ru.shortener.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -17,7 +18,7 @@ public class LinkController {
     private final LinkService service;
 
     @PostMapping
-    public ResponseEntity<Link> create (@RequestBody LinkRequest request) {
+    public ResponseEntity<Link> create (@Valid @RequestBody LinkRequest request) {
         log.debug("Создание короткой ссылки для URL: {}", request.getOriginalUrl());
         Link link = service.createShortLink(request.getOriginalUrl());
         log.debug("Короткая ссылка создана: {}", link.getShortCode());
