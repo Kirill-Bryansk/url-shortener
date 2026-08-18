@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Table(name = "links")
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 public class Link {
 
@@ -26,4 +28,7 @@ public class Link {
 
     @Column(name = "create_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "click_count")
+    private Long clickCount = 0L;
 }

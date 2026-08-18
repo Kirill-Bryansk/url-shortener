@@ -35,11 +35,20 @@ public class LinkService {
 
     public String getOriginalUrl(String shortCode) {
         log.debug("Поиск оригинального URL по shortCode: {}", shortCode);
-        return repository.findByShortCode(shortCode)
+        Link link = repository.findByShortCode(shortCode)
                 .orElseThrow(() -> {
                     log.warn("Ссылка не найдена: {}", shortCode);
                     return new LinkNotFoundException(shortCode);
-                })
-                .getOriginalUrl();
+                });
+        link.setClickCount(link.getClickCount() + 1);
+        log.debug("Обновление счетчика кликов по ссылке: {}", link);
+        repository.save(link);
+        return link.getOriginalUrl();
+    }
+
+    public Link getLink(String shortCode) {
+        log.debug("Получение ссылки без увеличения счетчика кликов по shortCode: {}", shortCode);
+        return repository.findByShortCode(shortCode)
+                .orElseThrow(() -> new LinkNotFoundException(shortCode));
     }
 }

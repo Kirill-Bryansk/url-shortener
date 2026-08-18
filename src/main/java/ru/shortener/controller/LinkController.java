@@ -33,4 +33,11 @@ public class LinkController {
                 .header("Location", originalUrl)
                 .build();
     }
+
+    @GetMapping("/{shortCode}/stats")
+    public ResponseEntity<Long> getStats(@PathVariable String shortCode) {
+        log.debug("GET: получения статистики по короткой ссылке: {}", shortCode);
+        Link link = service.getLink(shortCode);
+        return ResponseEntity.ok(link.getClickCount());
+    }
 }
