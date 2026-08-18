@@ -5,9 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import ru.shortener.controller.request.LinkRequest;
 import ru.shortener.model.Link;
+import ru.shortener.security.JwtAuthentication;
 import ru.shortener.service.LinkService;
 
 @RestController
@@ -21,7 +24,13 @@ public class LinkController {
     @PostMapping
     public ResponseEntity<Link> create (@Valid @RequestBody LinkRequest request) {
         log.debug("Создание короткой ссылки для URL: {}", request.getOriginalUrl());
-        Link link = service.createShortLink(request.getOriginalUrl());
+        // Получаем userId из контекста
+        Long userId = null;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthentication) {
+            userId = ((JwtAuthentication) auth).getUserId();
+        }
+        Link link = service.createShortLink(request.getOriginalUrl(), userId);
         log.debug("Короткая ссылка создана: {}", link.getShortCode());
         return ResponseEntity.status(HttpStatus.CREATED).body(link);
     }

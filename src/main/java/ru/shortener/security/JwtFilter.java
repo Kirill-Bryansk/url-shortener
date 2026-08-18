@@ -34,14 +34,19 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
-        String email = jwtService.extractEmail(token);
 
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    email, null, new ArrayList<>()
-            );
-            SecurityContextHolder.getContext().setAuthentication(auth);
-            log.debug("Аутентифицирован пользователь: {}", email);
+        try {
+            String email = jwtService.extractEmail(token);
+            Long userId = jwtService.extractUserId(token);
+
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                // Сохраняем email и userId в контексте
+                JwtAuthentication auth = new JwtAuthentication(email, userId);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                log.debug("Аутентифицирован пользователь: {} (ID: {})", email, userId);
+            }
+        } catch (Exception e) {
+            log.warn("Невалидный токен: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);

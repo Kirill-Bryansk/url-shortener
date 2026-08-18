@@ -24,12 +24,13 @@ public class LinkService {
         return code;
     }
 
-    public Link createShortLink(String originalUrl) {
+    public Link createShortLink(String originalUrl, Long userId) {
         checkLink(originalUrl);
         Link link = new Link();
         link.setOriginalUrl(originalUrl);
         link.setShortCode(generateShortCode());
         link.setCreatedAt(LocalDateTime.now());
+        link.setUserId(userId);
         Link saved = repository.save(link);
         log.debug("Ссылка сохранена с ID: {}, shortCode: {}", saved.getId(), saved.getShortCode());
         return saved;
