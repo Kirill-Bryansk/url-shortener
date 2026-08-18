@@ -1,4 +1,4 @@
-package ru.shortener.controller;
+package ru.shortener.controller.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

@@ -31,4 +31,7 @@ public class Link {
 
     @Column(name = "click_count")
     private Long clickCount = 0L;
+
+    @Column(name = "user_id")
+    private Long userId;
 }
