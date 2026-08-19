@@ -45,11 +45,11 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "Отсутствует тело запроса или не верный формат JSON"));
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(UserNotFoundException e) {
-        log.warn("Пользователь не найден: {}", e.getMessage());
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException e) {
+        log.warn("Неверные учётные данные: {}", e.getMessage());
         return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
+                .status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", e.getMessage()));
     }
 }

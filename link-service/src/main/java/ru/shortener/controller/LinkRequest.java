@@ -13,7 +13,7 @@ public class LinkRequest {
 
     @NotBlank(message = "URL не может быть пустым")
     @Pattern(
-            regexp = "^(https?://)[\\w\\-._~:/?#\\[\\]@!$&'()*+,;=]+$",
+            regexp = "^(https?://)[\\w\\-._~:/?#\\[\\]@!$&'()*+,;=%\\p{L}]+$",
             message = "Некорректный URL"
     )
     private String originalUrl;

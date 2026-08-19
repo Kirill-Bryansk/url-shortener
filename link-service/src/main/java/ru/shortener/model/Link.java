@@ -29,7 +29,7 @@ public class Link {
     @Column(name = "create_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "click_count")
+    @Column(name = "click_count", nullable = false)
     private Long clickCount = 0L;
 
     @Column(name = "user_id")

@@ -28,7 +28,6 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()     // регистрация/логин открыты
-                        .requestMatchers("/api/v1/links/**").permitAll()    // пока все открыты
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)

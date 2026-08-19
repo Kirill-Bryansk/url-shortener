@@ -9,7 +9,9 @@ import java.util.Optional;
 public interface LinkRepository extends JpaRepository<Link, Long> {
     Optional<Link> findByShortCode(String shortCode);
 
-    boolean existsByOriginalUrl(String originalUrl);
+    boolean existsByShortCode(String shortCode);
+
+    boolean existsByOriginalUrlAndUserId(String originalUrl, Long userId);
 
     void deleteByIdAndUserId(Long id, Long userId);
     List<Link> findByUserId(Long userId);

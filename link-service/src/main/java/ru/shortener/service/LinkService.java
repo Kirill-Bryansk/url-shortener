@@ -20,13 +20,16 @@ public class LinkService {
     private final LinkRepository repository;
 
     private String generateShortCode() {
-        String code = UUID.randomUUID().toString().substring(0, 8);
+        String code;
+        do {
+            code = UUID.randomUUID().toString().substring(0, 8);
+        } while (repository.existsByShortCode(code)); // защита от коллизий
         log.debug("Сгенерирован shortCode: {}", code);
         return code;
     }
 
     public Link createShortLink(String originalUrl, Long userId) {
-        checkLink(originalUrl);
+        checkLink(originalUrl, userId);
         Link link = new Link();
         link.setOriginalUrl(originalUrl);
         link.setShortCode(generateShortCode());
@@ -44,7 +47,9 @@ public class LinkService {
                     log.warn("Ссылка не найдена: {}", shortCode);
                     return new LinkNotFoundException(shortCode);
                 });
-        link.setClickCount(link.getClickCount() + 1);
+        // Защита от NPE, если в БД у старой записи click_count = NULL
+        long currentClicks = link.getClickCount() == null ? 0L : link.getClickCount();
+        link.setClickCount(currentClicks + 1);
         log.debug("Обновление счетчика кликов по ссылке: {}", link);
         repository.save(link);
         return link.getOriginalUrl();
@@ -71,8 +76,8 @@ public class LinkService {
         log.debug("Ссылка удалена: {}", linkId);
     }
 
-    public void checkLink(String originalUrl) {
-        if (repository.existsByOriginalUrl(originalUrl)) {
+    public void checkLink(String originalUrl, Long userId) {
+        if (repository.existsByOriginalUrlAndUserId(originalUrl, userId)) {
             throw new DuplicateException("Такая ссылка уже существует");
         }
     }
