@@ -1,0 +1,14 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: link-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/url_shortener
+    username: postgres
+    password: 12345
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
