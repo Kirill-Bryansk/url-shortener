@@ -13,6 +13,8 @@ import ru.shortener.model.Link;
 import ru.shortener.security.JwtAuthentication;
 import ru.shortener.service.LinkService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/links")
 @RequiredArgsConstructor
@@ -22,17 +24,21 @@ public class LinkController {
     private final LinkService service;
 
     @PostMapping
-    public ResponseEntity<Link> create (@Valid @RequestBody LinkRequest request) {
+    public ResponseEntity<Link> create(@Valid @RequestBody LinkRequest request) {
         log.debug("Создание короткой ссылки для URL: {}", request.getOriginalUrl());
-        // Получаем userId из контекста
-        Long userId = null;
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth instanceof JwtAuthentication) {
-            userId = ((JwtAuthentication) auth).getUserId();
-        }
+        Long userId = getCurrentUserId();
         Link link = service.createShortLink(request.getOriginalUrl(), userId);
         log.debug("Короткая ссылка создана: {}", link.getShortCode());
         return ResponseEntity.status(HttpStatus.CREATED).body(link);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Link>> getAll() {
+        log.debug("GET: получение всех ссылок пользователя");
+        Long userId = getCurrentUserId();
+        List<Link> links = service.getUserLinks(userId);
+        log.debug("Найдено {} ссылок", links.size());
+        return ResponseEntity.ok(links);
     }
 
     @GetMapping("/{shortCode}")
@@ -47,8 +53,25 @@ public class LinkController {
 
     @GetMapping("/{shortCode}/stats")
     public ResponseEntity<Long> getStats(@PathVariable String shortCode) {
-        log.debug("GET: получения статистики по короткой ссылке: {}", shortCode);
+        log.debug("GET: статистика по ссылке: {}", shortCode);
         Link link = service.getLink(shortCode);
         return ResponseEntity.ok(link.getClickCount());
+    }
+
+    @DeleteMapping("/{linkId}")
+    public ResponseEntity<Void> delete(@PathVariable Long linkId) {
+        log.debug("DELETE: удаление ссылки ID: {}", linkId);
+        Long userId = getCurrentUserId();
+        service.deleteLink(linkId, userId);
+        log.debug("Ссылка удалена: {}", linkId);
+        return ResponseEntity.noContent().build();
+    }
+
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthentication) {
+            return ((JwtAuthentication) auth).getUserId();
+        }
+        throw new RuntimeException("Пользователь не аутентифицирован");
     }
 }

@@ -9,6 +9,7 @@ import ru.shortener.model.Link;
 import ru.shortener.repository.LinkRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -19,7 +20,7 @@ public class LinkService {
     private final LinkRepository repository;
 
     private String generateShortCode() {
-        String code = UUID.randomUUID().toString().substring(0,8);
+        String code = UUID.randomUUID().toString().substring(0, 8);
         log.debug("Сгенерирован shortCode: {}", code);
         return code;
     }
@@ -53,6 +54,21 @@ public class LinkService {
         log.debug("Получение ссылки без увеличения счетчика кликов по shortCode: {}", shortCode);
         return repository.findByShortCode(shortCode)
                 .orElseThrow(() -> new LinkNotFoundException(shortCode));
+    }
+
+    public List<Link> getUserLinks(Long userId) {
+        log.debug("Получение списка ссылок пользователя с ID: {}", userId);
+        return repository.findByUserId(userId);
+    }
+
+    public void deleteLink(Long linkId, Long userId) {
+        log.debug("Удаление ссылки ID: {} пользователем ID: {}", linkId, userId);
+
+        repository.findByIdAndUserId(linkId, userId)
+                .orElseThrow(() -> new LinkNotFoundException("Ссылка не найдена или не принадлежит вам"));
+
+        repository.deleteByIdAndUserId(linkId, userId);
+        log.debug("Ссылка удалена: {}", linkId);
     }
 
     public void checkLink(String originalUrl) {
