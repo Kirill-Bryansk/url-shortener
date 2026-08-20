@@ -5,8 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import ru.shortener.model.Link;
+import ru.shortener.security.JwtAuthentication;
 import ru.shortener.service.LinkService;
 
 import java.util.List;
@@ -19,9 +22,17 @@ public class LinkController {
 
     private final LinkService service;
 
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthentication jwtAuth) {
+            return jwtAuth.getUserId();
+        }
+        throw new IllegalStateException("Пользователь не авторизован");
+    }
+
     @PostMapping
-    public ResponseEntity<Link> create(@Valid @RequestBody LinkRequest request,
-                                       @RequestHeader("X-User-Id") Long userId) {
+    public ResponseEntity<Link> create(@Valid @RequestBody LinkRequest request) {
+        Long userId = getCurrentUserId();
         log.debug("Создание короткой ссылки для URL: {} от пользователя ID: {}",
                 request.getOriginalUrl(), userId);
         Link link = service.createShortLink(request.getOriginalUrl(), userId);
@@ -29,7 +40,9 @@ public class LinkController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Link>> getAll(@RequestHeader("X-User-Id") Long userId) {
+    public ResponseEntity<List<Link>> getAll() {
+        Long userId = getCurrentUserId();
+        log.debug("GET: все ссылки пользователя ID: {}", userId);
         return ResponseEntity.ok(service.getUserLinks(userId));
     }
 
@@ -51,8 +64,8 @@ public class LinkController {
     }
 
     @DeleteMapping("/{linkId}")
-    public ResponseEntity<Void> delete(@PathVariable Long linkId,
-                                       @RequestHeader("X-User-Id") Long userId) {
+    public ResponseEntity<Void> delete(@PathVariable Long linkId) {
+        Long userId = getCurrentUserId();
         log.debug("DELETE: удаление ссылки ID: {}, пользователем ID: {}", linkId, userId);
         service.deleteLink(linkId, userId);
         return ResponseEntity.noContent().build();
