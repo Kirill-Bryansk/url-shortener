@@ -58,8 +58,9 @@ public class LinkController {
 
     @GetMapping("/{shortCode}/stats")
     public ResponseEntity<Long> getStats(@PathVariable String shortCode) {
-        log.debug("GET: статистика по ссылке: {}", shortCode);
-        Link link = service.getLink(shortCode);
+        Long userId = getCurrentUserId();
+        log.debug("GET: статистика по ссылке: {} (userId: {})", shortCode, userId);
+        Link link = service.getLink(shortCode, userId);
         return ResponseEntity.ok(link.getClickCount());
     }
 

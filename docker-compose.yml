@@ -9,6 +9,48 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/url_shortener
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 12345
+      JWT_SECRET: ${JWT_SECRET:-your-very-long-secret-key-at-least-64-characters-long}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  link-service:
+    build: ./link-service
+    container_name: link-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/url_shortener
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 12345
+      JWT_SECRET: ${JWT_SECRET:-your-very-long-secret-key-at-least-64-characters-long}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-your-very-long-secret-key-at-least-64-characters-long}
+    depends_on:
+      - auth-service
+      - link-service
 
 volumes:
   postgres_data:

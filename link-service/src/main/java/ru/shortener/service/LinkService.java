@@ -56,9 +56,9 @@ public class LinkService {
         return link.getOriginalUrl();
     }
 
-    public Link getLink(String shortCode) {
-        log.debug("Получение ссылки без увеличения счетчика кликов по shortCode: {}", shortCode);
-        return repository.findByShortCode(shortCode)
+    public Link getLink(String shortCode, Long userId) {
+        log.debug("Получение ссылки без увеличения счетчика кликов по shortCode: {} (userId: {})", shortCode, userId);
+        return repository.findByShortCodeAndUserId(shortCode, userId)
                 .orElseThrow(() -> new LinkNotFoundException(shortCode));
     }
 
