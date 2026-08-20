@@ -36,7 +36,7 @@ public class AuthService {
         userRepository.save(user);
         log.debug("Пользователь создан: {}", user.getUsername());
 
-        String token = jwtService.generateToken(user);
+        String token = jwtService.generateToken(user.getId(), user.getEmail());
         return new AuthResponse(token, user.getEmail());
     }
 
@@ -51,7 +51,7 @@ public class AuthService {
         }
 
         log.debug("Вход пользователя: {}", user.getUsername());
-        String token = jwtService.generateToken(user);
+        String token = jwtService.generateToken(user.getId(), user.getEmail());
         return new AuthResponse(token, user.getEmail());
     }
 }

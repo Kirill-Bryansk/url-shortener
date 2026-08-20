@@ -1,29 +1,25 @@
 package ru.shortener.filter;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import ru.shortener.security.JwtService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 
 @Component
 @Slf4j
 public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final JwtService jwtService;
 
-    public AuthFilter() {
+    public AuthFilter(JwtService jwtService) {
         super(Config.class);
+        this.jwtService = jwtService;
     }
+
 
     @Override
     public GatewayFilter apply(Config config) {
@@ -52,15 +48,8 @@ public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> 
             String token = authHeader.substring(7);
 
             try {
-                SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-                Claims claims = Jwts.parser()
-                        .verifyWith(key)
-                        .build()
-                        .parseSignedClaims(token)
-                        .getPayload();
-
-                String email = claims.getSubject();
-                Long userId = claims.get("userId", Long.class);
+                String email = jwtService.extractEmail(token);
+                Long userId =jwtService.extractUserId(token);
 
                 log.debug("Токен валидный: {} (ID: {})", email, userId);
 
