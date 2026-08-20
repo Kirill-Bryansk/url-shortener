@@ -25,13 +25,11 @@ public class LinkController {
         log.debug("Создание короткой ссылки для URL: {} от пользователя ID: {}",
                 request.getOriginalUrl(), userId);
         Link link = service.createShortLink(request.getOriginalUrl(), userId);
-        log.debug("Короткая ссылка создана: {}", link.getShortCode());
         return ResponseEntity.status(HttpStatus.CREATED).body(link);
     }
 
     @GetMapping
     public ResponseEntity<List<Link>> getAll(@RequestHeader("X-User-Id") Long userId) {
-        log.debug("Получение всех ссылок пользователя: {}", userId);
         return ResponseEntity.ok(service.getUserLinks(userId));
     }
 

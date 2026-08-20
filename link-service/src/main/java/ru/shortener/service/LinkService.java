@@ -3,6 +3,7 @@ package ru.shortener.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.shortener.exception.DuplicateException;
 import ru.shortener.exception.LinkNotFoundException;
 import ru.shortener.model.Link;
@@ -24,10 +25,10 @@ public class LinkService {
         do {
             code = UUID.randomUUID().toString().substring(0, 8);
         } while (repository.existsByShortCode(code)); // защита от коллизий
-        log.debug("Сгенерирован shortCode: {}", code);
         return code;
     }
 
+    @Transactional
     public Link createShortLink(String originalUrl, Long userId) {
         checkLink(originalUrl, userId);
         Link link = new Link();
@@ -66,6 +67,7 @@ public class LinkService {
         return repository.findByUserId(userId);
     }
 
+    @Transactional
     public void deleteLink(Long linkId, Long userId) {
         log.debug("Удаление ссылки ID: {} пользователем ID: {}", linkId, userId);
 
