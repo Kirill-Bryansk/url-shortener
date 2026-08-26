@@ -26,6 +26,7 @@
         <module>link-service</module>
         <module>api-gateway</module>
         <module>common-security</module>
+        <module>discovery-server</module>
     </modules>
     <dependencyManagement>
         <dependencies>
