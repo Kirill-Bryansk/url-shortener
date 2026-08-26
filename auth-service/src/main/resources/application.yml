@@ -13,6 +13,13 @@ spring:
       ddl-auto: update
     show-sql: false
 
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    instance:
+      prefer-ip-address: true
+
 jwt:
   secret: ${JWT_SECRET:your-very-long-secret-key-at-least-64-characters-long-1234567890abcdefghijklmnopqrstuvwxyz}
   expiration: ${JWT_EXPIRATION:86400000}
