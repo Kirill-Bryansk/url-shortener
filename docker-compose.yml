@@ -12,6 +12,19 @@ services:
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
+      retries: 10
+
+  discovery-server:
+    build: ./discovery-server
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_SERVER_HOST: discovery-server
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider http://localhost:8761/actuator/health || exit 1" ]
+      interval: 5s
+      retries: 10
 
   auth-service:
     build: ./auth-service
@@ -25,6 +38,8 @@ services:
       JWT_SECRET: ${JWT_SECRET:-your-very-long-secret-key-at-least-64-characters-long}
     depends_on:
       postgres:
+        condition: service_healthy
+      discovery-server:
         condition: service_healthy
 
   link-service:
@@ -40,6 +55,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      discovery-server:
+        condition: service_healthy
 
   api-gateway:
     build: ./api-gateway
@@ -51,6 +68,7 @@ services:
     depends_on:
       - auth-service
       - link-service
+      - discovery-server
 
 volumes:
   postgres_data:
