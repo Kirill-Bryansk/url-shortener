@@ -5,7 +5,7 @@
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-   <groupId>ru.shortener</groupId>
+    <groupId>ru.shortener</groupId>
     <artifactId>url-shortener-parent</artifactId>   <!--добавил -parent -->
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -27,6 +27,7 @@
         <module>api-gateway</module>
         <module>common-security</module>
         <module>discovery-server</module>
+        <module>config-server</module>
     </modules>
     <dependencyManagement>
         <dependencies>
