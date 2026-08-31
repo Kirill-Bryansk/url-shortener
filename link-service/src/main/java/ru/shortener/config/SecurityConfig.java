@@ -27,6 +27,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Публичный редирект по shortCode: GET /api/v1/links/{shortCode}
                         .requestMatchers(HttpMethod.GET, "/api/v1/links/{shortCode}").permitAll()
+                        .requestMatchers("/actuator/health").permitAll() // docker health check
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
