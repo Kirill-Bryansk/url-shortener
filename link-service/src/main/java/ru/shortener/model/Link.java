@@ -20,7 +20,7 @@ public class Link {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "origin_url", nullable = false)
+    @Column(name = "origin_url", nullable = false, length = 2048)
     private String originalUrl;
 
     @Column(name = "short_code", nullable = false, unique = true, length = 10)
