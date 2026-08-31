@@ -41,6 +41,7 @@ public class LinkService {
         return saved;
     }
 
+    @Transactional
     public String getOriginalUrl(String shortCode) {
         log.debug("Поиск оригинального URL по shortCode: {}", shortCode);
         Link link = repository.findByShortCode(shortCode)
@@ -48,11 +49,7 @@ public class LinkService {
                     log.warn("Ссылка не найдена: {}", shortCode);
                     return new LinkNotFoundException(shortCode);
                 });
-        // Защита от NPE, если в БД у старой записи click_count = NULL
-        long currentClicks = link.getClickCount() == null ? 0L : link.getClickCount();
-        link.setClickCount(currentClicks + 1);
-        log.debug("Обновление счетчика кликов по ссылке: {}", link);
-        repository.save(link);
+        repository.incrementClickCount(shortCode);
         return link.getOriginalUrl();
     }
 
