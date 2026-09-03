@@ -3,6 +3,9 @@ package ru.shortener.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -40,11 +43,17 @@ public class LinkController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LinkResponse>> getAll() {
+    public ResponseEntity<List<LinkResponse>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String[] sort
+    ) {
         Long userId = getCurrentUserId();
-        log.debug("GET: все ссылки пользователя ID: {}", userId);
+        log.debug("GET: ссылки пользователя ID: {} (page: {}, size: {}, sort: {})",
+                userId, page, size, (Object) sort);
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by(sort));
         return ResponseEntity.ok(
-                service.getUserLinks(userId).stream()
+                service.getUserLinks(userId, pageable).stream()
                         .map(LinkResponse::from)
                         .toList()
         );

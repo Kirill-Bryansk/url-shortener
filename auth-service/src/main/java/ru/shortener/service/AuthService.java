@@ -30,7 +30,7 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateException(" Пользователь с email:" + request.getEmail() + " уже существует");
+            throw new DuplicateException("Пользователь с email " + request.getEmail() + " уже существует");
         }
 
         User user = new User();
@@ -42,8 +42,8 @@ public class AuthService {
         try { // отлавливает ошибку
             userRepository.saveAndFlush(user);
         } catch (DataIntegrityViolationException e) {
-            // Если гонка проиграна ошибка, то пользователь уже существует
-            throw new DuplicateException(" Пользователь с email: " + request.getEmail() + " уже существует");
+            // Если гонка проиграна, то пользователь уже существует — тот же текст, что и выше
+            throw new DuplicateException("Пользователь с email " + request.getEmail() + " уже существует");
         }
 
         log.debug("Пользователь создан: {}", user.getUsername());

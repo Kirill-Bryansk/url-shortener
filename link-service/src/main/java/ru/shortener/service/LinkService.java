@@ -3,6 +3,8 @@ package ru.shortener.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.shortener.exception.DuplicateException;
@@ -11,7 +13,6 @@ import ru.shortener.model.Link;
 import ru.shortener.repository.LinkRepository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -37,7 +38,7 @@ public class LinkService {
         link.setShortCode(generateShortCode());
         link.setCreatedAt(LocalDateTime.now());
         link.setUserId(userId);
-       //Link saved = repository.save(link);
+
         try {
             Link saved = repository.saveAndFlush(link);
             log.debug("Ссылка сохранена с ID: {}, shortCode: {}", saved.getId(), saved.getShortCode());
@@ -65,9 +66,9 @@ public class LinkService {
                 .orElseThrow(() -> new LinkNotFoundException(shortCode));
     }
 
-    public List<Link> getUserLinks(Long userId) {
-        log.debug("Получение списка ссылок пользователя с ID: {}", userId);
-        return repository.findByUserId(userId);
+    public Page<Link> getUserLinks(Long userId, Pageable pageable) {
+        log.debug("Получение списка ссылок пользователя с ID: {} (page: {})", userId, pageable);
+        return repository.findByUserId(userId, pageable);
     }
 
     @Transactional
