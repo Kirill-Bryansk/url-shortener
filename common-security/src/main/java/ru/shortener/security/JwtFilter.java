@@ -7,12 +7,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component
+/**
+ * Общий JWT-фильтр. НЕ помечен @Component: бин создаёт каждый сервис
+ * в своём SecurityConfig. Это сознательно — component scan не должен
+ * подхватывать servlet-фильтры в reactive-приложениях (api-gateway).
+ */
 @RequiredArgsConstructor
 @Slf4j
 public class JwtFilter extends OncePerRequestFilter {
@@ -38,7 +41,6 @@ public class JwtFilter extends OncePerRequestFilter {
             Long userId = jwtService.extractUserId(token);
 
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                // Сохраняем email и userId в контексте
                 JwtAuthentication auth = new JwtAuthentication(email, userId);
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 log.debug("Аутентифицирован пользователь: {} (ID: {})", email, userId);

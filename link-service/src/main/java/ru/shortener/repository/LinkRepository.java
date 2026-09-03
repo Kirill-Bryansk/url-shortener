@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface LinkRepository extends JpaRepository<Link, Long> {
 
     @Modifying
-    @Query("UPDATE link l SET l.clickCount = l.clickCount + 1 WHERE l.shortCode = :shortCode")
+    @Query("UPDATE Link l SET l.clickCount = l.clickCount + 1 WHERE l.shortCode = :shortCode")
     int incrementClickCount(@Param("shortCode") String shortCode);
 
     Optional<Link> findByShortCode(String shortCode);

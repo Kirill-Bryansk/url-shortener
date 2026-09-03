@@ -1,6 +1,5 @@
 package ru.shortener.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -8,13 +7,12 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import ru.shortener.security.JwtFilter;
+import ru.shortener.security.JwtService;
 
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final JwtFilter jwtFilter;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -22,7 +20,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtService jwtService) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -31,7 +29,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll() // docker health check
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }

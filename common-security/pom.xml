@@ -35,10 +35,42 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Для @Service, @Value -->
+        <!-- Для @Service, @Value в JwtService -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
+        </dependency>
+
+        <!-- Для OncePerRequestFilter в JwtFilter -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+
+        <!-- Для SecurityContextHolder и UsernamePasswordAuthenticationToken -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+        </dependency>
+
+        <!-- Servlet API для JwtFilter; provided — его даст Tomcat сервиса в рантайме -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Для @Slf4j в JwtFilter -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- Для @RequiredArgsConstructor -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>
