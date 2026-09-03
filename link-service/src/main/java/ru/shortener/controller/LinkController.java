@@ -31,19 +31,23 @@ public class LinkController {
     }
 
     @PostMapping
-    public ResponseEntity<Link> create(@Valid @RequestBody LinkRequest request) {
+    public ResponseEntity<LinkResponse> create(@Valid @RequestBody LinkRequest request) {
         Long userId = getCurrentUserId();
         log.debug("Создание короткой ссылки для URL: {} от пользователя ID: {}",
                 request.getOriginalUrl(), userId);
         Link link = service.createShortLink(request.getOriginalUrl(), userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(link);
+        return ResponseEntity.status(HttpStatus.CREATED).body(LinkResponse.from(link));
     }
 
     @GetMapping
-    public ResponseEntity<List<Link>> getAll() {
+    public ResponseEntity<List<LinkResponse>> getAll() {
         Long userId = getCurrentUserId();
         log.debug("GET: все ссылки пользователя ID: {}", userId);
-        return ResponseEntity.ok(service.getUserLinks(userId));
+        return ResponseEntity.ok(
+                service.getUserLinks(userId).stream()
+                        .map(LinkResponse::from)
+                        .toList()
+        );
     }
 
     @GetMapping("/{shortCode}")
@@ -57,11 +61,11 @@ public class LinkController {
     }
 
     @GetMapping("/{shortCode}/stats")
-    public ResponseEntity<Long> getStats(@PathVariable String shortCode) {
+    public ResponseEntity<LinkResponse> getStats(@PathVariable String shortCode) {
         Long userId = getCurrentUserId();
         log.debug("GET: статистика по ссылке: {} (userId: {})", shortCode, userId);
         Link link = service.getLink(shortCode, userId);
-        return ResponseEntity.ok(link.getClickCount());
+        return ResponseEntity.ok(LinkResponse.from(link));
     }
 
     @DeleteMapping("/{linkId}")
