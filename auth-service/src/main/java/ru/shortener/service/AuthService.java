@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.shortener.controller.AuthRequest;
 import ru.shortener.controller.AuthResponse;
+import ru.shortener.controller.RefreshRequest;
 import ru.shortener.controller.RegisterRequest;
 import ru.shortener.exception.DuplicateException;
 import ru.shortener.exception.InvalidCredentialsException;
@@ -23,6 +24,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -46,8 +48,7 @@ public class AuthService {
 
         log.debug("Пользователь создан: {}", user.getUsername());
 
-        String token = jwtService.generateToken(user.getId(), user.getEmail());
-        return new AuthResponse(token, user.getEmail());
+        return buildAuthResponse(user);
     }
 
     public AuthResponse login(AuthRequest request) {
@@ -61,7 +62,23 @@ public class AuthService {
         }
 
         log.debug("Вход пользователя: {}", user.getUsername());
-        String token = jwtService.generateToken(user.getId(), user.getEmail());
-        return new AuthResponse(token, user.getEmail());
+        return buildAuthResponse(user);
+    }
+
+    /** Обмен валидного refresh-токена на новую пару access+refresh. */
+    public AuthResponse refresh(RefreshRequest request) {
+        User user = refreshTokenService.rotate(request.getRefreshToken());
+        return buildAuthResponse(user);
+    }
+
+    public void logout(RefreshRequest request) {
+        refreshTokenService.revoke(request.getRefreshToken());
+    }
+
+
+    private AuthResponse buildAuthResponse(User user) {
+        String accessToken = jwtService.generateToken(user.getId(), user.getEmail());
+        String refreshToken = refreshTokenService.issue(user.getId());
+        return new AuthResponse(accessToken, refreshToken, user.getEmail());
     }
 }

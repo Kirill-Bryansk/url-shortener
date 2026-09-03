@@ -30,6 +30,7 @@ class AuthServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private JwtService jwtService;
     @Mock private BCryptPasswordEncoder passwordEncoder;
+    @Mock private RefreshTokenService refreshTokenService;
     @InjectMocks private AuthService authService;
 
     private RegisterRequest registerRequest() {
@@ -50,12 +51,14 @@ class AuthServiceTest {
             return u;
         });
         when(jwtService.generateToken(1L, "test@mail.ru")).thenReturn("jwt-token");
+        when(refreshTokenService.issue(1L)).thenReturn("refresh-token");  // ✅ стаб
 
         AuthResponse response = authService.register(registerRequest());
 
         assertThat(response.getToken()).isEqualTo("jwt-token");
         assertThat(response.getEmail()).isEqualTo("test@mail.ru");
-        // Пароль сохраняется в хэше, а не в открытом виде
+        assertThat(response.getRefreshToken()).isEqualTo("refresh-token");  // ✅
+
         verify(userRepository).saveAndFlush(any(User.class));
     }
 
@@ -69,13 +72,12 @@ class AuthServiceTest {
 
     @Test
     void register_raceLost_constraintViolationTranslatedTo409() {
-        // Гонка: проверка прошла, но INSERT упал по unique-констрейнту
         when(userRepository.existsByEmail("test@mail.ru")).thenReturn(false);
         when(userRepository.saveAndFlush(any(User.class)))
                 .thenThrow(new DataIntegrityViolationException("uk"));
 
         assertThatThrownBy(() -> authService.register(registerRequest()))
-                .isInstanceOf(DuplicateException.class);   // ← а не 500
+                .isInstanceOf(DuplicateException.class);
     }
 
     @Test
@@ -92,8 +94,12 @@ class AuthServiceTest {
         when(userRepository.findByEmail("test@mail.ru")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("password123", "hashed")).thenReturn(true);
         when(jwtService.generateToken(1L, "test@mail.ru")).thenReturn("jwt-token");
+        when(refreshTokenService.issue(1L)).thenReturn("refresh-token");  // ✅ стаб
 
-        assertThat(authService.login(request).getToken()).isEqualTo("jwt-token");
+        AuthResponse response = authService.login(request);
+
+        assertThat(response.getToken()).isEqualTo("jwt-token");
+        assertThat(response.getRefreshToken()).isEqualTo("refresh-token");  // ✅ проверяем ответ
     }
 
     @Test

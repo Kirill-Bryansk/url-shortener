@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class AuthResponse {
-    private String token;
+    private String token; // access-токен, 15 минут
+    private String refreshToken; // для /refresh и /logout
     private String email;
 }
