@@ -75,7 +75,7 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 12345
       EUREKA_HOST: discovery-server
-      JWT_SECRET: ${JWT_SECRET:-your-very-long-secret-key-at-least-64-characters-long}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET не задан — создай .env файл (см. README)}
     depends_on:
       postgres:
         condition: service_healthy
