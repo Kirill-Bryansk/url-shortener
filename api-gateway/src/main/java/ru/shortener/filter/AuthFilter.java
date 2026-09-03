@@ -34,10 +34,6 @@ public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 if (isPublicRedirect) {
                     log.debug("Публичный редирект без токена: {}", path);
-                    // Не передаём клиентский X-User-Id во внутренний сервис
-                    exchange = exchange.mutate()
-                            .request(r -> r.headers(headers -> headers.remove("X-User-Id")))
-                            .build();
                     return chain.filter(exchange);
                 }
                 log.warn("Нет Authorization header, запрос отклонён: {}", path);
@@ -48,20 +44,9 @@ public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> 
             String token = authHeader.substring(7);
 
             try {
-                String email = jwtService.extractEmail(token);
-                Long userId =jwtService.extractUserId(token);
-
-                log.debug("Токен валидный: {} (ID: {})", email, userId);
-
-                // Всегда перезаписываем X-User-Id значением из токена,
-                // чтобы клиент не мог подставить чужой userId
-                exchange = exchange.mutate()
-                        .request(r -> r.headers(headers -> {
-                            headers.remove("X-User-Id");
-                            headers.set("X-User-Id", String.valueOf(userId));
-                        }))
-                        .build();
-
+                // Один парсинг вместо двух
+                var claims = jwtService.parseClaims(token);
+                log.debug("Токен валидный: {} (ID: {})", claims.getSubject(), claims.get("userId", Long.class));
             } catch (Exception e) {
                 log.warn("Невалидный токен: {}", e.getMessage());
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);

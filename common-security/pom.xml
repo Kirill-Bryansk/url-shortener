@@ -79,5 +79,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Для аннотации @PostConstruct-->
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
     </dependencies>
 </project>

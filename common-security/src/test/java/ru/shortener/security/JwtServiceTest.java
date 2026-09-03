@@ -16,9 +16,9 @@ class JwtServiceTest {
 
     @BeforeEach
     void setUp() {
-        // @Value-поля в юнит-тесте не заполняются Spring'ом — кладём вручную
         ReflectionTestUtils.setField(jwtService, "secret", SECRET);
-        ReflectionTestUtils.setField(jwtService, "expiration", 3_600_000L); // 1 час
+        ReflectionTestUtils.setField(jwtService, "expiration", 3_600_000L);
+        jwtService.init();   //раньше Spring делал это сам
     }
 
     @Test
@@ -37,6 +37,7 @@ class JwtServiceTest {
         JwtService foreign = new JwtService();
         ReflectionTestUtils.setField(foreign, "secret", "another-secret-key-that-is-also-at-least-64-characters-long-for-hmac!!!!");
         ReflectionTestUtils.setField(foreign, "expiration", 3_600_000L);
+        foreign.init();
         String forged = foreign.generateToken(1L, "user@test.ru");
 
         assertThatThrownBy(() -> jwtService.extractEmail(forged))
@@ -50,5 +51,23 @@ class JwtServiceTest {
 
         assertThatThrownBy(() -> jwtService.extractEmail(token))
                 .isInstanceOf(ExpiredJwtException.class);
+    }
+
+    @Test
+    void init_shortSecret_failsFast() {
+        JwtService bad = new JwtService();
+        ReflectionTestUtils.setField(bad, "secret", "too-short");
+        assertThatThrownBy(bad::init)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("32");
+    }
+
+    @Test
+    void init_defaultSecret_failsFast() {
+        JwtService bad = new JwtService();
+        ReflectionTestUtils.setField(bad, "secret", "your-very-long-secret-key-at-least-64-characters-long");
+        assertThatThrownBy(bad::init)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("дефолтн");
     }
 }

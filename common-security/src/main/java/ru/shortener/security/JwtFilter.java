@@ -1,5 +1,6 @@
 package ru.shortener.security;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,8 +38,10 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
 
         try {
-            String email = jwtService.extractEmail(token);
-            Long userId = jwtService.extractUserId(token);
+            // Один парсинг вместо двух
+            Claims claims = jwtService.parseClaims(token);
+            String email = claims.getSubject();
+            Long userId = claims.get("userId", Long.class);
 
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 JwtAuthentication auth = new JwtAuthentication(email, userId);
