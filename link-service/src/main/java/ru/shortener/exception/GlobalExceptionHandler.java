@@ -60,4 +60,12 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", "Не авторизован"));
     }
+
+    @ExceptionHandler(InvalidSortFieldException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidSortField(InvalidSortFieldException e) {
+        log.warn("Некорректное поле сортировки: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", e.getMessage()));
+    }
 }

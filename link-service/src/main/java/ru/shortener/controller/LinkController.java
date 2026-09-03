@@ -11,11 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import ru.shortener.exception.InvalidSortFieldException;
 import ru.shortener.model.Link;
 import ru.shortener.security.JwtAuthentication;
 import ru.shortener.service.LinkService;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/links")
@@ -42,16 +44,31 @@ public class LinkController {
         return ResponseEntity.status(HttpStatus.CREATED).body(LinkResponse.from(link));
     }
 
+    /** Поля, по которым разрешена сортировка списка (защита от произвольных значений). */
+    private static final Set<String> SORTABLE_FIELDS = Set.of("id", "createdAt", "clickCount", "shortCode");
+
     @GetMapping
     public ResponseEntity<List<LinkResponse>> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt,desc") String[] sort
+            @RequestParam(defaultValue = "createdAt,desc") String sort
     ) {
         Long userId = getCurrentUserId();
         log.debug("GET: ссылки пользователя ID: {} (page: {}, size: {}, sort: {})",
-                userId, page, size, (Object) sort);
-        Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by(sort));
+                userId, page, size, sort);
+
+        // Разбираем "поле,направление" вручную: для String[] Spring режет дефолт по запятой,
+        // и "createdAt,desc" превращается в два несуществующих поля ("createdAt" и "desc")
+        String[] parts = sort.split(",");
+        String field = parts[0].trim();
+        if (!SORTABLE_FIELDS.contains(field)) {
+            throw new InvalidSortFieldException(field);
+        }
+        Sort.Direction direction = parts.length > 1 && "asc".equalsIgnoreCase(parts[1].trim())
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by(direction, field));
         return ResponseEntity.ok(
                 service.getUserLinks(userId, pageable).stream()
                         .map(LinkResponse::from)
