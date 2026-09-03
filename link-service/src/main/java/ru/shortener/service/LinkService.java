@@ -2,6 +2,7 @@ package ru.shortener.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.shortener.exception.DuplicateException;
@@ -36,9 +37,14 @@ public class LinkService {
         link.setShortCode(generateShortCode());
         link.setCreatedAt(LocalDateTime.now());
         link.setUserId(userId);
-        Link saved = repository.save(link);
-        log.debug("Ссылка сохранена с ID: {}, shortCode: {}", saved.getId(), saved.getShortCode());
-        return saved;
+       //Link saved = repository.save(link);
+        try {
+            Link saved = repository.saveAndFlush(link);
+            log.debug("Ссылка сохранена с ID: {}, shortCode: {}", saved.getId(), saved.getShortCode());
+            return saved;
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateException("Такая ссылка уже существует");
+        }
     }
 
     @Transactional
