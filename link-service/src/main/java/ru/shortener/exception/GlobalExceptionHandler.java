@@ -52,4 +52,12 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", "Отсутствует тело запроса или не верный формат JSON"));
     }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleUnauthenticated(IllegalStateException e) {
+        log.warn("Запрос без аутентификации дошел до контроллера: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "Не авторизован"));
+    }
 }
